@@ -155,7 +155,7 @@ def create_app() -> Flask:
     app = Flask(__name__)
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key-change-me")
 
-    database_url = os.environ.get("DATABASE_URL", "sqlite:///team_task_manager.db")
+    database_url = os.environ.get("DATABASE_URL", "postgresql://postgres:dmjpsvXMDxcqtwiaxfTufnLCrTayNXvX@postgres.railway.internal:5432/railway")
     if database_url.startswith("postgres://"):
         database_url = database_url.replace("postgres://", "postgresql+psycopg2://", 1)
     if database_url.startswith("postgresql://") and "+psycopg2" not in database_url:
