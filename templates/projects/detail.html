@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% block title %}{{ project.name }} | Team Task Manager{% endblock %}
+
+{% block content %}
+  <section class="project-hero card">
+    <div>
+      <p class="eyebrow">Project detail</p>
+      <h1>{{ project.name }}</h1>
+      <p>{{ project.description or 'No description yet.' }}</p>
+    </div>
+    <div class="project-hero-metrics">
+      <div>
+        <span>Progress</span>
+        <strong>{{ progress.percent }}%</strong>
+      </div>
+      <div>
+        <span>Tasks</span>
+        <strong>{{ progress.total }}</strong>
+      </div>
+      <div>
+        <span>Overdue</span>
+        <strong>{{ progress.overdue }}</strong>
+      </div>
+    </div>
+  </section>
+
+  <section class="split-grid">
+    <article class="card panel">
+      <div class="panel-head">
+        <h2>Team</h2>
+        <span>{{ project.members|length }} members</span>
+      </div>
+      <div class="member-list">
+        {% for member in project.members %}
+          <div class="member-row">
+            <div>
+              <strong>{{ member.name }}</strong>
+              <p>{{ member.email }}</p>
+            </div>
+            <span class="badge">{{ member.role }}</span>
+            {% if can_manage and member.id != project.owner_id %}
+              <form method="post" action="{{ url_for('remove_project_member', project_id=project.id, user_id=member.id) }}">
+                <button class="btn ghost" type="submit">Remove</button>
+              </form>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+
+      {% if can_manage %}
+        <form method="post" action="{{ url_for('add_project_member', project_id=project.id) }}" class="inline-form">
+          <label>Add member by email</label>
+          <div class="inline-fields">
+            <input type="email" name="email" placeholder="member@example.com" required>
+            <button class="btn primary" type="submit">Add</button>
+          </div>
+        </form>
+      {% endif %}
+    </article>
+
+    <article class="card panel">
+      <div class="panel-head">
+        <h2>Progress</h2>
+        <span>{{ progress.done }}/{{ progress.total }} done</span>
+      </div>
+      <div class="progress-bar large"><i style="width: {{ progress.percent }}%"></i></div>
+      <div class="status-cluster">
+        <span class="badge soft">Todo: {{ tasks|selectattr('status', 'equalto', 'Todo')|list|length }}</span>
+        <span class="badge soft">In progress: {{ tasks|selectattr('status', 'equalto', 'In Progress')|list|length }}</span>
+        <span class="badge soft">Done: {{ tasks|selectattr('status', 'equalto', 'Done')|list|length }}</span>
+      </div>
+    </article>
+  </section>
+
+  <section class="card panel">
+    <div class="panel-head">
+      <div>
+        <h2>Create task</h2>
+        <p>Assign work to any project member and keep status synchronized in the browser.</p>
+      </div>
+    </div>
+
+    <form method="post" action="{{ url_for('create_task', project_id=project.id) }}" class="task-form">
+      <div>
+        <label>Title</label>
+        <input type="text" name="title" maxlength="180" required placeholder="Design homepage hero">
+      </div>
+      <div>
+        <label>Priority</label>
+        <select name="priority">
+          {% for priority in priorities %}
+            <option value="{{ priority }}">{{ priority }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label>Status</label>
+        <select name="status">
+          {% for status in task_statuses %}
+            <option value="{{ status }}">{{ status }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label>Due date</label>
+        <input type="date" name="due_date">
+      </div>
+      <div class="full-width">
+        <label>Description</label>
+        <textarea name="description" rows="4" placeholder="Add the details the assignee needs."></textarea>
+      </div>
+      <div>
+        <label>Assign to</label>
+        <select name="assigned_to_id">
+          <option value="">Unassigned</option>
+          {% for member in project.members %}
+            <option value="{{ member.id }}">{{ member.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="full-width">
+        <button class="btn primary" type="submit">Create task</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="card panel">
+    <div class="panel-head">
+      <h2>Tasks</h2>
+      <div class="filter-bar">
+        <button class="filter-btn active" data-filter="all" type="button">All</button>
+        <button class="filter-btn" data-filter="Todo" type="button">Todo</button>
+        <button class="filter-btn" data-filter="In Progress" type="button">In Progress</button>
+        <button class="filter-btn" data-filter="Done" type="button">Done</button>
+        <button class="filter-btn" data-filter="overdue" type="button">Overdue</button>
+      </div>
+    </div>
+
+    <div class="task-table" data-task-table>
+      <div class="task-table-head">
+        <span>Task</span>
+        <span>Assignee</span>
+        <span>Status</span>
+        <span>Priority</span>
+        <span>Due</span>
+        <span>Action</span>
+      </div>
+      {% for task in tasks %}
+        <div class="task-table-row" data-task-row data-task-status="{{ task.status }}" data-task-id="{{ task.id }}" data-task-due="{{ task.due_date.isoformat() if task.due_date else '' }}">
+          <span>
+            <strong>{{ task.title }}</strong>
+            <small>{{ task.description or 'No description provided.' }}</small>
+          </span>
+          <span>{{ task.assignee.name if task.assignee else 'Unassigned' }}</span>
+          <span>
+            <select class="status-select" data-status-select data-task-id="{{ task.id }}">
+              {% for status in task_statuses %}
+                <option value="{{ status }}" {% if task.status == status %}selected{% endif %}>{{ status }}</option>
+              {% endfor %}
+            </select>
+          </span>
+          <span><span class="badge soft">{{ task.priority }}</span></span>
+          <span>{{ task.due_date.strftime('%b %d, %Y') if task.due_date else 'No due date' }}</span>
+          <span>
+            {% if can_manage or task.created_by_id == current_user.id %}
+              <form method="post" action="{{ url_for('delete_task', task_id=task.id) }}" onsubmit="return confirm('Delete this task?');">
+                <button class="btn ghost" type="submit">Delete</button>
+              </form>
+            {% endif %}
+          </span>
+        </div>
+      {% else %}
+        <div class="empty-state">No tasks yet. Create the first one above.</div>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}

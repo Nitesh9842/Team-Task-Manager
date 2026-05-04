@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Dashboard | Team Task Manager{% endblock %}
+
+{% block content %}
+  <section class="page-head">
+    <div>
+      <p class="eyebrow">Dashboard</p>
+      <h1>Progress at a glance</h1>
+      <p>Monitor overdue work, current status, and project momentum across every board you can access.</p>
+    </div>
+    <a class="btn primary" href="{{ url_for('create_project') }}">New project</a>
+  </section>
+
+  <section class="metrics-grid">
+    <article class="metric-card">
+      <span>Total tasks</span>
+      <strong>{{ metrics.total }}</strong>
+    </article>
+    <article class="metric-card">
+      <span>Done</span>
+      <strong>{{ metrics.done }}</strong>
+    </article>
+    <article class="metric-card">
+      <span>In progress</span>
+      <strong>{{ metrics.in_progress }}</strong>
+    </article>
+    <article class="metric-card danger">
+      <span>Overdue</span>
+      <strong>{{ metrics.overdue }}</strong>
+    </article>
+  </section>
+
+  <section class="split-grid">
+    <article class="card panel">
+      <div class="panel-head">
+        <h2>Projects</h2>
+        <a href="{{ url_for('projects_page') }}">View all</a>
+      </div>
+      <div class="project-list">
+        {% for item in projects %}
+          {% set project = item.project %}
+          <a class="project-row" href="{{ url_for('project_detail', project_id=project.id) }}">
+            <div>
+              <strong>{{ project.name }}</strong>
+              <p>{{ project.description or 'No description yet.' }}</p>
+            </div>
+            <div class="progress-block">
+              <span>{{ item.progress.percent }}%</span>
+              <div class="progress-bar"><i style="width: {{ item.progress.percent }}%"></i></div>
+            </div>
+          </a>
+        {% else %}
+          <p class="empty-state">No projects yet. Create your first project to get started.</p>
+        {% endfor %}
+      </div>
+    </article>
+
+    <article class="card panel">
+      <div class="panel-head">
+        <h2>Overdue</h2>
+        <span>{{ overdue_tasks|length }} tasks</span>
+      </div>
+      <div class="task-stack">
+        {% for task in overdue_tasks %}
+          <div class="task-chip danger">
+            <strong>{{ task.title }}</strong>
+            <span>{{ task.project.name }} · due {{ task.due_date.strftime('%b %d, %Y') }}</span>
+          </div>
+        {% else %}
+          <p class="empty-state">No overdue tasks. Keep the streak alive.</p>
+        {% endfor %}
+      </div>
+    </article>
+  </section>
+
+  <section class="card panel">
+    <div class="panel-head">
+      <h2>Recent tasks</h2>
+      <span>Fast status check</span>
+    </div>
+    <div class="task-table dashboard-table">
+      <div class="task-table-head">
+        <span>Task</span>
+        <span>Project</span>
+        <span>Status</span>
+        <span>Due</span>
+      </div>
+      {% for task in recent_tasks %}
+        <div class="task-table-row">
+          <span>{{ task.title }}</span>
+          <span>{{ task.project.name }}</span>
+          <span><span class="status-pill status-{{ task.status|lower|replace(' ', '-') }}">{{ task.status }}</span></span>
+          <span>{{ task.due_date.strftime('%b %d, %Y') if task.due_date else 'No due date' }}</span>
+        </div>
+      {% else %}
+        <div class="empty-state">No tasks available yet.</div>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}

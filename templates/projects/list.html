@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Projects | Team Task Manager{% endblock %}
+
+{% block content %}
+  <section class="page-head">
+    <div>
+      <p class="eyebrow">Projects</p>
+      <h1>Your project portfolio</h1>
+      <p>Each board shows live progress, member count, and task status.</p>
+    </div>
+    <a class="btn primary" href="{{ url_for('create_project') }}">Create project</a>
+  </section>
+
+  <section class="project-grid">
+    {% for item in projects %}
+      {% set project = item.project %}
+      <a class="card project-card" href="{{ url_for('project_detail', project_id=project.id) }}">
+        <div class="card-top">
+          <span class="badge">{{ item.progress.percent }}% complete</span>
+          <span class="muted">{{ item.progress.total }} tasks</span>
+        </div>
+        <h2>{{ project.name }}</h2>
+        <p>{{ project.description or 'No description yet.' }}</p>
+        <div class="progress-bar"><i style="width: {{ item.progress.percent }}%"></i></div>
+        <div class="card-foot">
+          <span>{{ project.members|length }} members</span>
+          <span>{{ item.progress.overdue }} overdue</span>
+        </div>
+      </a>
+    {% else %}
+      <article class="card empty-card">
+        <h2>No projects yet</h2>
+        <p>Create your first project to start assigning tasks and inviting teammates.</p>
+        <a class="btn primary" href="{{ url_for('create_project') }}">Create project</a>
+      </article>
+    {% endfor %}
+  </section>
+{% endblock %}

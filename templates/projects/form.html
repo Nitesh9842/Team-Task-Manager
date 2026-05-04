@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}New Project | Team Task Manager{% endblock %}
+
+{% block content %}
+  <section class="card form-card">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">New project</p>
+        <h1>Create a board</h1>
+      </div>
+      <a href="{{ url_for('projects_page') }}">Back to projects</a>
+    </div>
+
+    <form method="post" class="stack-form">
+      <label>Project name</label>
+      <input type="text" name="name" required minlength="3" maxlength="160" placeholder="Website launch">
+
+      <label>Description</label>
+      <textarea name="description" rows="5" placeholder="What is this project about?"></textarea>
+
+      <button class="btn primary" type="submit">Create project</button>
+    </form>
+  </section>
+{% endblock %}

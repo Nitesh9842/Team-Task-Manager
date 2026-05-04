@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Team | Team Task Manager{% endblock %}
+
+{% block content %}
+  <section class="page-head">
+    <div>
+      <p class="eyebrow">Team management</p>
+      <h1>Users and roles</h1>
+      <p>Promote or demote accounts and review the project footprint of each team member.</p>
+    </div>
+  </section>
+
+  <section class="card panel">
+    <div class="panel-head">
+      <h2>Users</h2>
+      <span>{{ users|length }} accounts</span>
+    </div>
+
+    <div class="task-table team-table">
+      <div class="task-table-head">
+        <span>User</span>
+        <span>Email</span>
+        <span>Role</span>
+        <span>Projects</span>
+        <span>Action</span>
+      </div>
+      {% for user in users %}
+        <div class="task-table-row">
+          <span>{{ user.name }}</span>
+          <span>{{ user.email }}</span>
+          <span><span class="badge {% if user.role == role_admin %}badge-admin{% else %}soft{% endif %}">{{ user.role }}</span></span>
+          <span>{{ user.projects|length + user.owned_projects|length }}</span>
+          <span>
+            <form method="post" action="{{ url_for('update_role', user_id=user.id) }}" class="role-form">
+              <select name="role">
+                <option value="Admin" {% if user.role == 'Admin' %}selected{% endif %}>Admin</option>
+                <option value="Member" {% if user.role == 'Member' %}selected{% endif %}>Member</option>
+              </select>
+              <button class="btn primary" type="submit">Update</button>
+            </form>
+          </span>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="card panel">
+    <div class="panel-head">
+      <h2>Projects</h2>
+      <span>{{ projects|length }} total</span>
+    </div>
+    <div class="project-grid compact-grid">
+      {% for project in projects %}
+        <a class="card project-card compact" href="{{ url_for('project_detail', project_id=project.id) }}">
+          <h3>{{ project.name }}</h3>
+          <p>{{ project.description or 'No description yet.' }}</p>
+          <span class="muted">Owner: {{ project.owner.name }}</span>
+        </a>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}
