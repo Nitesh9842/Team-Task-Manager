@@ -2,6 +2,9 @@ import os
 import re
 from datetime import date, datetime
 from flask import Flask, abort, flash, jsonify, redirect, render_template, request, url_for
+from dotenv import load_dotenv
+
+load_dotenv()
 from flask_login import (
     LoginManager,
     UserMixin,
